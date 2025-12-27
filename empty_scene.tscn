@@ -1,15 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://shbq83r74r5t"]
+[gd_scene load_steps=5 format=3 uid="uid://shbq83r74r5t"]
 
 [ext_resource type="Script" uid="uid://bxyqa8a5toj3e" path="res://Player.cs" id="1_oplr2"]
 [ext_resource type="Texture2D" uid="uid://vrvpp8ik7imf" path="res://icon.svg" id="2_j4igv"]
+[ext_resource type="Script" uid="uid://2js2l347i176" path="res://Track.cs" id="3_e14ts"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_rvgbj"]
 
 [node name="EmptyScene" type="Node2D"]
 
 [node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(607, 305)
-scale = Vector2(0.96783584, 0.9909977)
+position = Vector2(71, 65)
+rotation = 3.0978518
+scale = Vector2(-0.3298416, -0.28085977)
 input_pickable = true
 script = ExtResource("1_oplr2")
 
@@ -22,3 +24,17 @@ texture = ExtResource("2_j4igv")
 position = Vector2(3.08365, 0)
 scale = Vector2(-7.6606765, -8.409911)
 shape = SubResource("CircleShape2D_rvgbj")
+
+[node name="Node2D" type="Node2D" parent="." node_paths=PackedStringArray("_leftLine2D", "_rightLine2D")]
+position = Vector2(261, 138)
+rotation = 0.038067847
+script = ExtResource("3_e14ts")
+_leftLine2D = NodePath("Line2D")
+_rightLine2D = NodePath("Line2D2")
+
+[node name="Line2D" type="Line2D" parent="Node2D"]
+rotation = 0.0042467644
+points = PackedVector2Array(-71, -80, 230, 7, 759, 172, 874, 281)
+
+[node name="Line2D2" type="Line2D" parent="Node2D"]
+points = PackedVector2Array(-87, 23, 66, 122, 403, 199, 613, 231, 591, 335, 646, 402, 759, 369, 813, 439)
