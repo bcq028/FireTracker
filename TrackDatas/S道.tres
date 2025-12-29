@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrackData" load_steps=2 format=3 uid="uid://coggc7a3xgntd"]
+
+[ext_resource type="Script" uid="uid://edgivqs8nuw" path="res://TrackData.cs" id="1_juqm5"]
+
+[resource]
+script = ExtResource("1_juqm5")
+LeftPoints = PackedVector2Array(0, 0, 359, 28, 407, 183, 410, 311, 309, 372, 296, 459, 358, 527, 475, 547, 702, 548, 757, 521, 881, 524)
+RightPoints = PackedVector2Array(-4, 91, 187, 101, 317, 204, 161, 338, 69, 432, 187, 541, 333, 606, 548, 605, 661, 611, 749, 616, 874, 610)
+LeftSegmentsCache = PackedVector2Array(0, 0, 359, 28, 359, 28, 407, 183, 407, 183, 410, 311, 410, 311, 309, 372, 309, 372, 296, 459, 296, 459, 358, 527, 358, 527, 475, 547, 475, 547, 702, 548, 702, 548, 757, 521, 757, 521, 881, 524)
+RightSegmentsCache = PackedVector2Array(-4, 91, 187, 101, 187, 101, 317, 204, 317, 204, 161, 338, 161, 338, 69, 432, 69, 432, 187, 541, 187, 541, 333, 606, 333, 606, 548, 605, 548, 605, 661, 611, 661, 611, 749, 616, 749, 616, 874, 610)
+metadata/_custom_type_script = "uid://edgivqs8nuw"

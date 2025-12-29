@@ -11,9 +11,14 @@ config_version=5
 [application]
 
 config/name="T1"
-run/main_scene="uid://shbq83r74r5t"
+run/main_scene="uid://dq65urwel4xc7"
 config/features=PackedStringArray("4.5", "C#", "Mobile")
 config/icon="res://icon.svg"
+
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [dotnet]
 

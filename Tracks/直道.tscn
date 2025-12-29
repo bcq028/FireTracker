@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://cov4ujy8316q7"]
+
+[ext_resource type="Script" uid="uid://2js2l347i176" path="res://Track.cs" id="1_7jyr6"]
+[ext_resource type="Resource" uid="uid://7o6gie373bqr" path="res://TrackDatas/直道.tres" id="2_n2hmi"]
+
+[node name="TestTrack1" type="Node2D" node_paths=PackedStringArray("LeftLine2D", "RightLine2D")]
+script = ExtResource("1_7jyr6")
+LeftLine2D = NodePath("Line2D")
+RightLine2D = NodePath("Line2D2")
+TrackData = ExtResource("2_n2hmi")
+metadata/_custom_type_script = "uid://2js2l347i176"
+
+[node name="Line2D" type="Line2D" parent="."]
+points = PackedVector2Array(-1, 1, 1150, 3)
+
+[node name="Line2D2" type="Line2D" parent="."]
+position = Vector2(-1, 250)
+points = PackedVector2Array(-4, -158, 1149, -146)
