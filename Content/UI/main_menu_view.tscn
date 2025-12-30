@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dq65urwel4xc7"]
 
-[ext_resource type="Script" uid="uid://b2g424hsngql0" path="res://MainMenuView.cs" id="1_d4w5f"]
+[ext_resource type="Script" uid="uid://b2g424hsngql0" path="res://Source/MainMenuView.cs" id="1_xboow"]
 
 [node name="MainMenuView" type="Control"]
 layout_mode = 3
@@ -9,7 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_d4w5f")
+script = ExtResource("1_xboow")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1

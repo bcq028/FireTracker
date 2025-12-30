@@ -4,7 +4,7 @@ namespace T1;
 public partial class MainMenuView : Control
 {
 	// Called when the node enters the scene tree for the first time.
-	[Export] public string WorldScenePath = "res://World.tscn";
+	[Export] public string WorldScenePath = "res://Content/Levels/World.tscn";
 	[Export] public int DefaultPort = 7001;
 
 	private Label _statusLabel;

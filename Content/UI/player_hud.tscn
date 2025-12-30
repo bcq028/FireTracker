@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://d0yvxrl2ixfwe"]
 
-[ext_resource type="Script" uid="uid://co82atr3r4tb3" path="res://PlayerHud.cs" id="1_cs3pk"]
-[ext_resource type="Texture2D" uid="uid://vrvpp8ik7imf" path="res://icon.svg" id="2_6vp4k"]
+[ext_resource type="Script" uid="uid://co82atr3r4tb3" path="res://Source/PlayerHud.cs" id="1_v4w6s"]
+[ext_resource type="Texture2D" uid="uid://vrvpp8ik7imf" path="res://Content/icon.svg" id="2_ecomi"]
 
 [node name="PlayerHUD" type="Control"]
 layout_mode = 3
@@ -10,7 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_cs3pk")
+script = ExtResource("1_v4w6s")
 metadata/_edit_use_anchors_ = true
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -30,7 +30,7 @@ layout_mode = 2
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
-texture = ExtResource("2_6vp4k")
+texture = ExtResource("2_ecomi")
 expand_mode = 1
 stretch_mode = 5
 flip_h = true

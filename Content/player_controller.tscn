@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://dvuscayuo8pqn"]
+
+[ext_resource type="Script" uid="uid://dr6gprdmha6d8" path="res://Source/PlayerController.cs" id="1_lvefo"]
+[ext_resource type="PackedScene" uid="uid://d0yvxrl2ixfwe" path="res://Content/UI/player_hud.tscn" id="2_s510l"]
+
+[node name="PlayerController" type="Node"]
+script = ExtResource("1_lvefo")
+HudScene = ExtResource("2_s510l")
+metadata/_custom_type_script = "uid://dr6gprdmha6d8"

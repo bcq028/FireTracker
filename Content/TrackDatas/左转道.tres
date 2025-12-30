@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="TrackData" load_steps=2 format=3 uid="uid://clllshpsdxqpw"]
 
-[ext_resource type="Script" uid="uid://edgivqs8nuw" path="res://TrackData.cs" id="1_qnib5"]
+[ext_resource type="Script" uid="uid://edgivqs8nuw" path="res://Source/TrackData.cs" id="1_qnib5"]
 
 [resource]
 script = ExtResource("1_qnib5")

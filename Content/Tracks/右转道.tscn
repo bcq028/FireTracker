@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://tkb7td5otxys"]
 
-[ext_resource type="Script" uid="uid://2js2l347i176" path="res://Track.cs" id="1_x61u0"]
-[ext_resource type="Resource" uid="uid://c2wns8bjjf3ib" path="res://TrackDatas/右转道.tres" id="2_0cej3"]
+[ext_resource type="Script" uid="uid://2js2l347i176" path="res://Source/Track.cs" id="1_x61u0"]
+[ext_resource type="Resource" uid="uid://c2wns8bjjf3ib" path="res://Content/TrackDatas/右转道.tres" id="2_0cej3"]
 
 [node name="右转道" type="Node2D" node_paths=PackedStringArray("LeftLine2D", "RightLine2D")]
 script = ExtResource("1_x61u0")

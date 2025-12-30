@@ -29,10 +29,10 @@ public partial class PlayerAttributeSet: GodotObject
     public GameplayAttribute Health = new(100);
     public GameplayAttribute FollowSpeed = new(10);
 }
-
+[GlobalClass]
 public partial class Pawn : CharacterBody2D
 {
-    [Export] public PlayerAttributeSet attributes = new();
+    public PlayerAttributeSet attributes = new();
     private bool _isDragging = false; 
     private Vector2 _dragOffset;     
     public override void _Ready()
