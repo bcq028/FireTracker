@@ -28,8 +28,11 @@ public partial class PlayerController : Node
         Debug.Assert(Multiplayer.IsServer());
         PossessedPawn = pawn;
         EmitSignal(SignalName.OnPossessed, pawn);
-        // listen server跳过自身
-        if (GetMultiplayerAuthority() != Multiplayer.GetUniqueId())
+        if (GetMultiplayerAuthority() == Multiplayer.GetUniqueId())
+        {
+            ClientPossess(pawn.GetPath());
+        }
+        else
         {
             RpcId(GetMultiplayerAuthority(), nameof(ClientPossess), pawn.GetPath());
         }
@@ -39,17 +42,19 @@ public partial class PlayerController : Node
     private void ClientPossess(NodePath pawnPath)
     {
         var pawn = GetNodeOrNull<Pawn>(pawnPath);
+        if (pawn == null) return;
         PossessedPawn = pawn;
         EmitSignal(SignalName.OnPossessed, pawn);
+        var widget = HUDManager.Instance.CreateWidget<PlayerHud>(HudScene, this);
+        HUDManager.Instance.AddToViewport(this, widget);
     }
-
     public void SetupSynchronizer()
     {
         _synchronizer = new MultiplayerSynchronizer();
         _synchronizer.Name = "ControllerSynchronizer";
         AddChild(_synchronizer);
         var config = new SceneReplicationConfig();
-        NodePath propPath = $".:{nameof(PossessedPawn)}";
+        NodePath propPath = $".:{nameof(PossessedPawn)}"; 
         config.AddProperty(propPath);
         config.PropertySetReplicationMode(propPath, SceneReplicationConfig.ReplicationMode.Always);
         _synchronizer.ReplicationConfig = config;

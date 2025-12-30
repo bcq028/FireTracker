@@ -35,7 +35,7 @@ public partial class GameMode : Node
 		SpawnController((int)peerID);
 	}
 
-	private static bool IsDedicatedServer()
+	public static bool IsDedicatedServer()
 	{
 		return DisplayServer.GetName() == "headless";
 	}
