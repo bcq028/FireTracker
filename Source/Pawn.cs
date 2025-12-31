@@ -1,33 +1,16 @@
 using System;
 using Godot;
+using Godot.Collections;
 
 namespace T1;
 
-public class GameplayAttribute(float value)
+public partial class PlayerAttributeSet: AttributeSet
 {
-    public float BaseValue = value;
-    private float _currentValue = value;
-    private float CurrentValue
+    public PlayerAttributeSet()
     {
-        get => _currentValue;
-        set
-        {
-            if (!Mathf.IsEqualApprox(value, _currentValue))
-            {
-                _currentValue = value;
-                OnChanged?.Invoke(_currentValue,BaseValue);
-            }
-        }
+        RegisterAttribute("Health",100);
+        RegisterAttribute("FollowSpeed",10);
     }
-    public event Action<float, float> OnChanged;
-    
-    public static implicit operator float(GameplayAttribute attribute) => attribute.CurrentValue;
-}
-
-public partial class PlayerAttributeSet: GodotObject
-{
-    public GameplayAttribute Health = new(100);
-    public GameplayAttribute FollowSpeed = new(10);
 }
 [GlobalClass]
 public partial class Pawn : CharacterBody2D
@@ -35,9 +18,19 @@ public partial class Pawn : CharacterBody2D
     public PlayerAttributeSet attributes = new();
     private bool _isDragging = false; 
     private Vector2 _dragOffset;     
+    
+    private MultiplayerSynchronizer _synchronizer = new MultiplayerSynchronizer();
     public override void _Ready()
     {
+        InputPickable = true;
         this.InputEvent += OnInputEvent;
+        _synchronizer.Name = "PawnSynchronizer";
+        var config = new SceneReplicationConfig();
+        NodePath posPath = $".:{nameof(GlobalPosition)}"; 
+        config.AddProperty(posPath);
+        config.PropertySetReplicationMode(posPath, SceneReplicationConfig.ReplicationMode.Always);
+        _synchronizer.ReplicationConfig = config;
+        AddChild(_synchronizer);
     }
 
     private void OnInputEvent(Node viewport, InputEvent @event, long shapeIdx)
@@ -76,25 +69,35 @@ public partial class Pawn : CharacterBody2D
         {
             Vector2 targetPos = GetGlobalMousePosition() + _dragOffset;
 
-            GlobalPosition = GlobalPosition.Lerp(targetPos, (float)delta * attributes.FollowSpeed);
+            GlobalPosition = GlobalPosition.Lerp(targetPos, 100);
         }
     }
 
     public void Cry(string message)
     {
         Label label = new Label();
-		
         label.Text = message;
         label.AddThemeColorOverride("font_color", Colors.Yellow);
         label.Position = new Vector2(50, -50);
-        label.AddThemeFontSizeOverride("font_size",128);
+        label.AddThemeFontSizeOverride("font_size", 128);
         AddChild(label);
 
         Tween tween = GetTree().CreateTween();
-		
+
         tween.TweenProperty(label, "position", label.Position + new Vector2(0, -100), 1.5f);
-		
+
         tween.Parallel().TweenProperty(label, "modulate:a", 0.0f, 1.5f);
         tween.Finished += () => label.QueueFree();
+        var buff = new GameplayEffect
+        {
+            DurationType = EffectDurationType.Instant,
+            Modifiers = [new("Health", -10, ModifierOp.Add)]
+        };
+        attributes.ApplyEffect(buff, this);
+    }
+
+    public override void _ExitTree()
+    {
+        GD.Print($"Exit Tree");
     }
 }

@@ -1,12 +1,12 @@
 [gd_scene load_steps=4 format=3 uid="uid://bjqcupwwhs0o7"]
 
 [ext_resource type="Script" uid="uid://bxyqa8a5toj3e" path="res://Source/Pawn.cs" id="1_nj1u1"]
-[ext_resource type="Texture2D" uid="uid://vrvpp8ik7imf" path="res://Content/icon.svg" id="2_vu3k2"]
+[ext_resource type="Texture2D" uid="uid://vrvpp8ik7imf" path="res://Content/Atlas/icon.svg" id="2_vu3k2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_3ygl2"]
 
 [node name="Pawn" type="CharacterBody2D"]
-scale = Vector2(0.8, 0.8)
+input_pickable = true
 script = ExtResource("1_nj1u1")
 metadata/_custom_type_script = "uid://bxyqa8a5toj3e"
 

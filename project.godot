@@ -13,7 +13,7 @@ config_version=5
 config/name="T1"
 run/main_scene="uid://dq65urwel4xc7"
 config/features=PackedStringArray("4.5", "C#", "Mobile")
-config/icon="res://Content/icon.svg"
+config/icon="res://Content/Atlas/icon.svg"
 
 [display]
 

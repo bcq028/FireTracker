@@ -13,6 +13,8 @@ public partial class GameMode : Node
 	private Dictionary<int,PlayerController> _playerControllers= new Dictionary<int, PlayerController>();
 	[Export] public PackedScene PlayerControllerScene;
 	[Export] public PackedScene PlayerPawnScene;
+	
+	private MultiplayerSpawner _multiplayerSpawner;
 	public override void _Ready()
 	{
 		if (!Multiplayer.IsServer())
@@ -20,6 +22,7 @@ public partial class GameMode : Node
 			return;
 		}
 
+		SetupSpawner();
 		Multiplayer.PeerConnected += OnPeerConnected;
 		Multiplayer.PeerDisconnected += OnPeerDisConnected;
 		// listen server下，延迟调用生成逻辑，防止破坏场景树
@@ -28,6 +31,18 @@ public partial class GameMode : Node
 			CallDeferred(nameof(SpawnController), 1);
 		}
 
+	}
+
+	private void SetupSpawner()
+	{
+		_multiplayerSpawner = new MultiplayerSpawner();
+		AddChild(_multiplayerSpawner);
+		_multiplayerSpawner.Name = "MultiplayerSpawner";
+		_multiplayerSpawner.SpawnPath = GetParent().GetPath();
+		if (PlayerPawnScene != null)
+		{
+			_multiplayerSpawner.AddSpawnableScene(PlayerPawnScene.ResourcePath);
+		}
 	}
 
 	private void OnPeerConnected(long peerID)

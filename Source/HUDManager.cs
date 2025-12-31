@@ -24,7 +24,7 @@ public class HUDManager
 
     public void AddToViewport(Node context, Control widget)
     {
-        if (_globalCanvasLayer == null)
+        if (_globalCanvasLayer == null || !GodotObject.IsInstanceValid(_globalCanvasLayer))
         {
             _globalCanvasLayer = new CanvasLayer();
             _globalCanvasLayer.Name = "GlobalCanvasLayer";
