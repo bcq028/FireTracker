@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace T1;
@@ -8,7 +9,7 @@ namespace T1;
 public partial class Track : Path2D
 {
     [Export] public float TrackWidth = 100.0f;
-    [Export] public float WallThickness = 10.0f; // 新增：墙壁厚度
+    [Export] public float WallThickness = 10.0f;
 
     [Export]
     public bool BakeButton
@@ -21,99 +22,89 @@ public partial class Track : Path2D
     {
         if (Curve == null || Curve.PointCount < 2) return;
 
-        var points = Curve.GetBakedPoints();
-        List<Vector2> leftEdge = new();
-        List<Vector2> rightEdge = new();
+        var rawPoints = Curve.GetBakedPoints();
+        var centerPoints = SanitizePoints(rawPoints);
 
-        for (int i = 0; i < points.Length; i++)
+        if (centerPoints.Length < 2) return;
+
+        var trackLeft = new List<Vector2>();      // 赛道左边缘 (视觉边缘 + 左墙内侧)
+        var trackRight = new List<Vector2>();     // 赛道右边缘 (视觉边缘 + 右墙内侧)
+        var leftWallOuter = new List<Vector2>();  // 左墙外侧
+        var rightWallOuter = new List<Vector2>(); // 右墙外侧
+
+        float halfWidth = TrackWidth / 2f;
+
+        for (int i = 0; i < centerPoints.Length; i++)
         {
-            Vector2 current = points[i];
-            Vector2 next = (i < points.Length - 1) 
-                ? points[i + 1] 
-                : points[i] + (points[i] - points[i - 1]);
+            Vector2 current = centerPoints[i];
+            
+            Vector2 next = (i < centerPoints.Length - 1) 
+                ? centerPoints[i + 1] 
+                : centerPoints[i] + (centerPoints[i] - centerPoints[i - 1]);
                 
             Vector2 dir = (next - current).Normalized();
-            Vector2 normal = new Vector2(-dir.Y, dir.X);
-            
-            leftEdge.Add(current + normal * TrackWidth / 2);
-            rightEdge.Add(current - normal * TrackWidth / 2);
+            Vector2 normal = new Vector2(-dir.Y, dir.X); // 左手法线
+
+            trackLeft.Add(current + normal * halfWidth);
+            trackRight.Add(current - normal * halfWidth);
+            leftWallOuter.Add(current + normal * (halfWidth + WallThickness));
+            rightWallOuter.Add(current - normal * (halfWidth + WallThickness));
         }
 
-        GenerateVisuals(leftEdge, rightEdge);
-        GenerateCollision(leftEdge, rightEdge);
+        // 4. 分发数据进行生成
+        GenerateVisuals(trackLeft, trackRight);
+        GenerateCollision(trackLeft, trackRight, leftWallOuter, rightWallOuter);
     }
 
-    private void GenerateCollision(List<Vector2> left, List<Vector2> right)
-    {
-        var staticBody = GetOrCreateChild<StaticBody2D>(this, "TrackWalls");
-        staticBody.Position = Vector2.Zero;
-        staticBody.CollisionLayer = 2; // 建议用 Layer 2 作为墙壁层
-        staticBody.CollisionMask = 1;
+    // --- 生成逻辑 ---
 
-        // 生成左墙 (向外扩充)
-        GenerateWallStrip(staticBody, "LeftWall", SanitizePoints(left), true);
-        
-        // 生成右墙 (向外扩充)
-        GenerateWallStrip(staticBody, "RightWall", SanitizePoints(right), false);
-    }
-
-    private void GenerateWallStrip(StaticBody2D parent, string name, Vector2[] innerPoints, bool isLeft)
-    {
-        if (innerPoints.Length < 2) return;
-
-        var colPoly = GetOrCreateChild<CollisionPolygon2D>(parent, name);
-        
-        // 1. 计算外圈的点 (Outer Edge)
-        List<Vector2> outerPoints = new List<Vector2>();
-        
-        for (int i = 0; i < innerPoints.Length; i++)
-        {
-            // 计算当前点的法线方向
-            // 为了平滑，处理首尾逻辑
-            Vector2 current = innerPoints[i];
-            Vector2 next = (i < innerPoints.Length - 1) ? innerPoints[i+1] : innerPoints[i] + (innerPoints[i] - innerPoints[i-1]);
-            Vector2 dir = (next - current).Normalized();
-            Vector2 normal = new Vector2(-dir.Y, dir.X);
-
-            // 挤出厚度
-            // 如果是左墙，Normal 指向赛道内，所以我们要减去 Normal * Thickness 往外挤
-            // 或者根据你 Normal 的具体计算逻辑调整符号
-            float offset = isLeft ? WallThickness : -WallThickness;
-            
-            outerPoints.Add(current + normal * offset);
-        }
-
-        // 2. 缝合内圈和外圈，形成封闭多边形
-        var combined = new List<Vector2>(innerPoints);
-        var outerReversed = new List<Vector2>(outerPoints);
-        outerReversed.Reverse(); // 倒序回来
-        combined.AddRange(outerReversed);
-
-        // 3. 设置为实心模式
-        colPoly.BuildMode = CollisionPolygon2D.BuildModeEnum.Solids;
-        colPoly.Polygon = combined.ToArray();
-    }
-
-    // --- 辅助函数保持不变 ---
-    
-    private void GenerateVisuals(List<Vector2> leftEdge, List<Vector2> rightEdge)
+    private void GenerateVisuals(List<Vector2> left, List<Vector2> right)
     {
         var poly = GetOrCreateChild<Polygon2D>(this, "VisualPoly");
-        var combined = new List<Vector2>(leftEdge);
-        var rightReverse = new List<Vector2>(rightEdge);
-        rightReverse.Reverse();
-        combined.AddRange(rightReverse);
-        poly.Polygon = combined.ToArray();
+        poly.Polygon = StitchPolygon(left, right);
         poly.Color = new Color(0.2f, 0.8f, 1.0f, 0.5f);
     }
 
-    private Vector2[] SanitizePoints(List<Vector2> points)
+    private void GenerateCollision(
+        List<Vector2> trackLeft, List<Vector2> trackRight, 
+        List<Vector2> wallLeftOuter, List<Vector2> wallRightOuter)
     {
-        if (points.Count < 2) return System.Array.Empty<Vector2>();
+        var staticBody = GetOrCreateChild<StaticBody2D>(this, "TrackWalls");
+        staticBody.Position = Vector2.Zero;
+        staticBody.CollisionLayer = 2;
+        staticBody.CollisionMask = 1;
+
+        var leftCol = GetOrCreateChild<CollisionPolygon2D>(staticBody, "LeftWall");
+        leftCol.BuildMode = CollisionPolygon2D.BuildModeEnum.Solids;
+        leftCol.Polygon = StitchPolygon(wallLeftOuter, trackLeft);
+
+        var rightCol = GetOrCreateChild<CollisionPolygon2D>(staticBody, "RightWall");
+        rightCol.BuildMode = CollisionPolygon2D.BuildModeEnum.Solids;
+        rightCol.Polygon = StitchPolygon(trackRight, wallRightOuter);
+    }
+
+    // --- 通用工具函数 ---
+
+    /// <summary>
+    /// 将两条线缝合成一个封闭的多边形 (LineA + LineB_Reversed)
+    /// </summary>
+    private Vector2[] StitchPolygon(List<Vector2> lineA, List<Vector2> lineB)
+    {
+        var combined = new List<Vector2>(lineA);
+        var reversedB = new List<Vector2>(lineB);
+        reversedB.Reverse();
+        combined.AddRange(reversedB);
+        return combined.ToArray();
+    }
+
+    private Vector2[] SanitizePoints(Vector2[] points)
+    {
+        if (points.Length < 2) return System.Array.Empty<Vector2>();
         var result = new List<Vector2> { points[0] };
-        for (int i = 1; i < points.Count; i++)
+        for (int i = 1; i < points.Length; i++)
         {
-            if (points[i].DistanceSquaredTo(result[^1]) > 0.5f)
+            // 过滤掉距离过近的点
+            if (points[i].DistanceSquaredTo(result[^1]) > 1.0f)
                 result.Add(points[i]);
         }
         return result.ToArray();
@@ -121,16 +112,27 @@ public partial class Track : Path2D
 
     private T GetOrCreateChild<T>(Node parent, string name) where T : Node, new()
     {
+        if (parent == null) return null;
         var node = parent.GetNodeOrNull(name);
-        if (node is T typedNode) return typedNode;
-        
-        node?.QueueFree();
+
+        if (node != null)
+        {
+            if (node is T typedNode) return typedNode;
+            
+            // 类型不匹配时销毁旧的
+            node.QueueFree();
+            node.Name = name + "_Deleting"; 
+        }
+
         var newNode = new T { Name = name };
         parent.AddChild(newNode);
-        
-        if (Engine.IsEditorHint() && IsInsideTree())
-            newNode.Owner = GetTree().EditedSceneRoot;
-            
+
+        if (Engine.IsEditorHint() && parent.IsInsideTree())
+        {
+            var tree = parent.GetTree();
+            if (tree != null && tree.EditedSceneRoot != null)
+                newNode.Owner = tree.EditedSceneRoot;
+        }
         return newNode;
     }
 }
