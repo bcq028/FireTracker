@@ -6,6 +6,7 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_3ygl2"]
 
 [node name="Pawn" type="CharacterBody2D"]
+collision_mask = 3
 input_pickable = true
 script = ExtResource("1_nj1u1")
 metadata/_custom_type_script = "uid://bxyqa8a5toj3e"

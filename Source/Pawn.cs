@@ -9,7 +9,7 @@ public partial class PlayerAttributeSet: AttributeSet
     public PlayerAttributeSet()
     {
         RegisterAttribute("Health",100);
-        RegisterAttribute("FollowSpeed",10);
+        RegisterAttribute("FollowSpeed",100);
         RegisterAttribute("MaxHealth",100);
     }
 }
@@ -66,22 +66,36 @@ public partial class Pawn : CharacterBody2D
     }
     public override void _PhysicsProcess(double delta)
     {
-        Vector2 screenSize = GetViewportRect().Size;
         if (_isDragging)
         {
+            Vector2 screenSize = GetViewportRect().Size;
             float margin = 20.0f;
             Vector2 targetPos = GetGlobalMousePosition() + _dragOffset;
             targetPos.X = Mathf.Clamp(targetPos.X, margin, screenSize.X - margin);
             targetPos.Y = Mathf.Clamp(targetPos.Y, margin, screenSize.Y - margin);
-            float weight = attributes.GetAttribute("FollowSpeed") * (float)delta;
-            // add clamp to fix oscillation
-            weight = Mathf.Clamp(weight, 0.0f, 1.0f);
-            GlobalPosition = GlobalPosition.Lerp(targetPos, weight);
+            Vector2 nextStep = targetPos - GlobalPosition;
+            Velocity = nextStep / (float)delta;
+            bool hasCollision = MoveAndSlide();
+            if (hasCollision)
+            {
+                Cry("好疼");
+            }
+        }
+        else
+        {
+            Velocity = Vector2.Zero; 
+            // MoveAndSlide(); // 可选：如果你希望非拖拽状态也能被别人推走
         }
     }
 
     public void Cry(string message)
     {
+        int collisionCount = GetSlideCollisionCount();
+        for (int i = 0; i < collisionCount; i++)
+        {
+            KinematicCollision2D collision = GetSlideCollision(i);
+            GodotObject collider = collision.GetCollider();
+        }
         Label label = new Label();
         label.Text = message;
         label.AddThemeColorOverride("font_color", Colors.Yellow);
