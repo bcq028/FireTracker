@@ -44,9 +44,9 @@ public partial class PlayerController : Node
         var pawn = GetNodeOrNull<Pawn>(pawnPath);
         if (pawn == null) return;
         PossessedPawn = pawn;
-        EmitSignal(SignalName.OnPossessed, pawn);
         var widget = HUDManager.Instance.CreateWidget<PlayerHud>(HudScene, this);
         HUDManager.Instance.AddToViewport(this, widget);
+        EmitSignal(SignalName.OnPossessed, pawn);
     }
     public void SetupSynchronizer()
     {

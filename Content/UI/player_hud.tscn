@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b3swqrsih2bgo" path="res://Content/Atlas/kenney_ui-pack/Vector/Grey/button_rectangle_flat.svg" id="3_wcu6c"]
 [ext_resource type="Texture2D" uid="uid://cvoco0hjjgfx2" path="res://Content/Atlas/kenney_ui-pack/Vector/Red/button_rectangle_flat.svg" id="4_ulyfy"]
 
-[node name="PlayerHUD" type="Control"]
+[node name="PlayerHUD" type="Control" node_paths=PackedStringArray("HealthLabel", "HealthBar")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,6 +14,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_v4w6s")
+HealthLabel = NodePath("MarginContainer/HBoxContainer/Label")
+HealthBar = NodePath("MarginContainer/HBoxContainer/TextureProgressBar")
 metadata/_edit_use_anchors_ = true
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -46,3 +48,7 @@ nine_patch_stretch = true
 texture_under = ExtResource("3_wcu6c")
 texture_progress = ExtResource("4_ulyfy")
 texture_progress_offset = Vector2(5, 0)
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2

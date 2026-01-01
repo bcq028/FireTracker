@@ -52,10 +52,16 @@ public class GameplayAttribute(float value)
         set
         {
             _baseValue = value;
+            float newCurrentVal = CalculateValue();
+            if (!Mathf.IsEqualApprox(_currentValue, newCurrentVal))
+            {
+                _currentValue = newCurrentVal;
+                OnChanged?.Invoke(_currentValue, _baseValue);
+            }
             _currentValue = CalculateValue();
         }
     }
-
+    public static implicit operator float(GameplayAttribute attribute) => attribute._currentValue;
     public event Action<float, float> OnChanged;
 }
 

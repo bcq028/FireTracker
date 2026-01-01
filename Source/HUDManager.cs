@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace T1;
@@ -5,6 +6,9 @@ namespace T1;
 public interface IBaseWidget
 {
     PlayerController Controller { get; set; }
+    virtual void OnAddToViewport()
+    {
+    }
 }
 
 public class HUDManager
@@ -31,6 +35,11 @@ public class HUDManager
             _globalCanvasLayer.Layer = 100;
             context.GetTree().Root.AddChild(_globalCanvasLayer);
         }
+        if (widget is IBaseWidget baseWidget)
+        {
+            baseWidget.OnAddToViewport();
+        }
+
         _globalCanvasLayer.AddChild(widget);
     }
 }

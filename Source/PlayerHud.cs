@@ -9,7 +9,7 @@ public partial class PlayerHud : Control,IBaseWidget
 	private Tween _healthTween;
 	public PlayerController Controller { get; set; }
 	private Pawn _ownerPawn;
-	public override void _Ready()
+	public void OnAddToViewport()
 	{
 		if (Controller == null)
 		{
@@ -27,8 +27,9 @@ public partial class PlayerHud : Control,IBaseWidget
 
 	private void UpdateHealthUI(float currentVal, float baseVal)
 	{
-		HealthLabel.Text = $"{currentVal:0} / {baseVal:0}";
-		HealthBar.MaxValue = baseVal;
+		float maxHealth = _ownerPawn.attributes.GetAttribute("MaxHealth");
+		HealthLabel.Text = $"{currentVal:0} / {maxHealth:0}";
+		HealthBar.MaxValue = maxHealth;
 		if (_healthTween != null && _healthTween.IsValid())
 		{
 			_healthTween.Kill();
@@ -37,9 +38,9 @@ public partial class PlayerHud : Control,IBaseWidget
 		_healthTween.TweenProperty(HealthBar, "value", (double)currentVal, 0.3f)
 			.SetTrans(Tween.TransitionType.Quad)
 			.SetEase(Tween.EaseType.Out);
-    
+
 		// 如果血量变红（低于 20%），可以顺便变个色（可选）
-		float ratio = currentVal / baseVal;
+		float ratio = currentVal / maxHealth;
 		HealthBar.TintProgress = ratio < 0.2f ? Colors.Red : Colors.Green;
 	}
 

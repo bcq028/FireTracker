@@ -10,6 +10,7 @@ public partial class PlayerAttributeSet: AttributeSet
     {
         RegisterAttribute("Health",100);
         RegisterAttribute("FollowSpeed",10);
+        RegisterAttribute("MaxHealth",100);
     }
 }
 [GlobalClass]
@@ -65,11 +66,18 @@ public partial class Pawn : CharacterBody2D
     }
     public override void _PhysicsProcess(double delta)
     {
+        Vector2 screenSize = GetViewportRect().Size;
         if (_isDragging)
         {
+            float margin = 20.0f;
             Vector2 targetPos = GetGlobalMousePosition() + _dragOffset;
-
-            GlobalPosition = GlobalPosition.Lerp(targetPos, 100);
+            targetPos.X = Mathf.Clamp(targetPos.X, margin, screenSize.X - margin);
+            targetPos.Y = Mathf.Clamp(targetPos.Y, margin, screenSize.Y - margin);
+            float weight = attributes.GetAttribute("FollowSpeed") * (float)delta;
+            // add clamp to fix oscillation
+            weight = Mathf.Clamp(weight, 0.0f, 1.0f);
+            GlobalPosition = GlobalPosition.Lerp(targetPos, weight);
+            GD.Print($"GlobalPosition: {GlobalPosition}");
         }
     }
 
