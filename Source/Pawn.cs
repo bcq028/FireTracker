@@ -77,7 +77,6 @@ public partial class Pawn : CharacterBody2D
             // add clamp to fix oscillation
             weight = Mathf.Clamp(weight, 0.0f, 1.0f);
             GlobalPosition = GlobalPosition.Lerp(targetPos, weight);
-            GD.Print($"GlobalPosition: {GlobalPosition}");
         }
     }
 
