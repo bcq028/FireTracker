@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -6,90 +7,101 @@ namespace  T1;
 
 [Tool]
 [GlobalClass]
-public partial class Track : Node2D
+public partial class Track : Path2D
 {
-    [Export] public Line2D LeftLine2D;
-    [Export] public Line2D RightLine2D;
-    [Export] public TrackData TrackData;
+    [Export] public float TrackWidth = 100.0f;
+    [Export] public float Precision = 10.0f;
 
-    // 编辑器按钮
-    [Export] public bool BakeButton {
+    [Export]
+    public bool BakeButton
+    {
         get => false;
-        set { if (value) Bake(); }
+        set
+        {
+            if (value) BakeTrack();
+        }
     }
 
-    public override void _Notification(int what)
+    private void BakeTrack()
     {
-        if (!IsInsideTree())
+        if (Curve == null || Curve.PointCount < 2) return;
+        // 根据贝塞尔曲线生成track
+        var points = Curve.GetBakedPoints();
+        List<Vector2> leftEdge = new();
+        List<Vector2> rightEdge = new();
+        for (int i = 0; i < points.Length; i++)
         {
-            return;
+            Vector2 current = points[i];
+            Vector2 next = (i < points.Length - 1) ? points[i + 1] : points[i] + (points[i] - points[i - 1]);
+            Vector2 dir = (next - current).Normalized();
+            Vector2 normal = new Vector2(-dir.Y, dir.X);
+            leftEdge.Add(current + normal * TrackWidth / 2);
+            rightEdge.Add(current - normal * TrackWidth / 2);
         }
-        bool bIsInsideOwnScene = !string.IsNullOrEmpty(SceneFilePath) && GetTree()?.EditedSceneRoot == this;
-        if (what == (int)NotificationEditorPreSave)
+
+        GenerateVisuals(leftEdge, rightEdge);
+        GenerateCollision(leftEdge, rightEdge);
+    }
+
+    private void GenerateVisuals(List<Vector2> leftEdge, List<Vector2> rightEdge)
+    {
+        var poly = GetNodeOrNull<Polygon2D>("VisualPoly") ?? new Polygon2D { Name = "VisualPoly" };
+        if (poly.GetParent() == null)
         {
-            if (bIsInsideOwnScene)
+            AddChild(poly);
+        }
+
+        if (Engine.IsEditorHint())
+        {
+            poly.Owner = GetTree().EditedSceneRoot;
+        }
+        var combined = new List<Vector2>(leftEdge);
+        var rightReverse = new List<Vector2>(rightEdge);
+        rightReverse.Reverse();
+        combined.AddRange(rightReverse);
+        poly.Polygon = combined.ToArray();
+        poly.Color = Colors.Aqua;
+    }
+
+    private void GenerateCollision(List<Vector2> left, List<Vector2> right)
+    {
+        var staticBody = GetOrCreateChild<StaticBody2D>(this, "TrackWalls");
+        staticBody.Position = Vector2.Zero; 
+        staticBody.CollisionLayer = 2; 
+        staticBody.CollisionMask = 1;
+
+        var leftCol = GetOrCreateChild<CollisionPolygon2D>(staticBody, "LeftWall");
+        leftCol.BuildMode = CollisionPolygon2D.BuildModeEnum.Segments;
+        leftCol.Polygon = left.ToArray();
+        var rightCol =GetOrCreateChild<CollisionPolygon2D>(staticBody, "RightWall");
+        rightCol.BuildMode = CollisionPolygon2D.BuildModeEnum.Segments;
+        rightCol.Polygon = right.ToArray();
+    }
+
+    private T GetOrCreateChild<T>(Node parent, string name) where T : Node, new()
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+        var node = parent.GetNodeOrNull(name);
+        if (node != null)
+        {
+            if (node is not T)
             {
-                GD.Print($"自动保存...");
-                Bake();
+                node.QueueFree();
+                node.Name = name + "_Deleting";
             }
+
+            return (T)node;
         }
-        base._Notification(what);
-    }
-
-
-    private void Bake()
-    {
-        var globalLeftPoints = LeftLine2D.Points.Select(p => ToLocal(LeftLine2D.ToGlobal(p))).ToArray();
-        var globalRightPoints = RightLine2D.Points.Select(p => ToLocal(RightLine2D.ToGlobal(p))).ToArray();
-        if (TrackData != null)
+        var newNode = new T { Name = name };
+        parent.AddChild(newNode);
+        if (Engine.IsEditorHint())
         {
-            TrackData.NormalizeAndBake(globalLeftPoints, globalRightPoints);
+            newNode.Owner = GetTree().EditedSceneRoot;
         }
-    }
-
-    
-    public override void _Ready()
-    {
-        if (TrackData == null || LeftLine2D == null || RightLine2D == null)
-        {
-            GD.PrintErr("TrackData is null. ");
-        }
-        else
-        {
-            GenerateCollision();
-        }
-        base._Ready();
-    }
-
-    private static void OnCollision(Node2D body)
-    {
-        if (body is not Pawn player) return;
-        player.Modulate = Colors.Red;
-        player.Cry("好疼");
-    }
-
-    private void GenerateCollision()
-    {
-        var area = new Area2D();
-        area.CollisionLayer = 2;
-        area.CollisionMask = 1;
-        AddChild(area);
-        if (!TrackData.IsValid())
-        {
-            GD.PrintErr("TrackData is invalid");
-        }
-        TryGenerateCollisionFromLine(area, TrackData.LeftSegmentsCache);
-        TryGenerateCollisionFromLine(area, TrackData.RightSegmentsCache);
-        area.BodyEntered += OnCollision;
-    }
-
-    private static void TryGenerateCollisionFromLine(Area2D area, Vector2[] segments)
-    {
-        var shape = new ConcavePolygonShape2D();
-        shape.Segments = segments;
-        var col = new CollisionShape2D();
-        col.Shape = shape;
-        area.AddChild(col);
+        return newNode;
     }
 };
 
